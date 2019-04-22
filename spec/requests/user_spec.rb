@@ -113,4 +113,35 @@ RSpec.describe User do
       it { expect(user.password_digest).to_not eq(@old_password_digest) }
     end
   end
+
+  describe '#destroy' do
+    context 'when no user is logged in' do
+      before(:each) { delete '/api/users/1' }
+      
+      it { expect(response).to have_http_status(:unauthorized) }
+    end
+
+    context 'when id does not belong to current user' do
+      before(:each) { authorized :delete, '/api/users/0', user: user }
+      it { expect(response).to have_http_status(:forbidden) }
+    end
+
+    context "when current_password is not the current user's password" do
+      before(:each) {
+        params = { user: { current_password: "bad_pass" } }
+        authorized :delete, "/api/users/#{user.id}", params: params, user: user
+      }
+
+      it { expect(response).to have_http_status(:unauthorized) }
+    end
+
+    context 'when user is authenticated' do
+      before(:each) {
+        params = { user: { current_password: user.password } }
+        authorized :delete, "/api/users/#{user.id}", params: params, user: user
+      }
+      it { expect(response).to have_http_status(:ok) }
+      it { expect(response.headers['jwt']).to be nil }
+    end
+  end
 end

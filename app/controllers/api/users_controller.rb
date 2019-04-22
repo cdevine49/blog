@@ -22,6 +22,15 @@ class Api::UsersController < ApplicationController
     end
   end
 
+  def destroy
+    if @user.destroy
+      logout!
+      render :show, status: 200
+    else
+      render json: { errors: @user.errors.full_messages }, status: 422
+    end
+  end
+
   private
   def authenticate_user
     unless @user = current_user.try(:authenticate, params[:user][:current_password])

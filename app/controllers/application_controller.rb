@@ -27,6 +27,10 @@ class ApplicationController < ActionController::API
     set_jwt_response_header
   end
 
+  def logout!
+    response.headers['jwt'] = nil
+  end
+
   def logged_in?
     !!current_user
   end

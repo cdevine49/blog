@@ -24,6 +24,10 @@ RSpec.describe User do
     end
   end
 
+  describe 'relationships' do
+    it { should have_many(:posts) }
+  end
+
   describe 'find_by_token' do
     context 'when token is invalid' do
       before(:each) {

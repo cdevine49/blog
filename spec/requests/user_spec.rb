@@ -84,5 +84,33 @@ RSpec.describe User do
       it { expect(json['id']).to eq(user.id) }
       it { expect(json['email']).to eq(@email) }
     end
+
+    context 'when updating password without confirmation' do
+      before(:each) {
+        @old_password_digest = user.password_digest
+        params = { user: { current_password: user.password, password: 'A1b2C3d4' } }
+        authorized :patch, "/api/users/#{user.id}", params: params, user: user
+        user.reload
+      }
+      it { expect(response).to have_http_status(:unprocessable_entity) }
+      it { expect(user.password_digest).to eq(@old_password_digest) }
+    end
+
+    context 'when updating password with confirmation' do
+      before(:each) {
+        @old_password_digest = user.password_digest
+        params = {
+          user: {
+            current_password: user.password,
+            password: 'A1b2C3d4',
+            password_confirmation: 'A1b2C3d4'
+          }
+        }
+        authorized :patch, "/api/users/#{user.id}", params: params, user: user
+        user.reload
+      }
+      it { expect(response).to have_http_status(:ok) }
+      it { expect(user.password_digest).to_not eq(@old_password_digest) }
+    end
   end
 end

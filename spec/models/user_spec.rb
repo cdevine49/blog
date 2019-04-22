@@ -12,6 +12,16 @@ RSpec.describe User do
     it { should validate_length_of(:password).is_at_least(8) }
 
     it { should validate_presence_of(:password_confirmation).on(:create) }
+
+    context 'password is blank' do
+      before(:each) { allow(subject).to receive(:password).and_return(nil) }
+      it { should_not validate_presence_of(:password_confirmation).on(:update) }
+    end
+
+    context 'password is not blank' do
+      before(:each) { allow(subject).to receive(:password).and_return("abcd1234") }
+      it { should validate_presence_of(:password_confirmation).on(:update) }
+    end
   end
 
   describe 'find_by_token' do

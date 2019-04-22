@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::API
   helper_method :current_user
 
+  before_action :require_logged_in
+
   private
   def bearer_token
     if request.headers['Authorization'].present?
@@ -27,6 +29,10 @@ class ApplicationController < ActionController::API
 
   def logged_in?
     !!current_user
+  end
+
+  def require_logged_in
+    render json: { message: "You need to log in first" }, status: 401 unless logged_in?
   end
 
   def require_logged_out

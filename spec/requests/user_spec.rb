@@ -43,4 +43,46 @@ RSpec.describe User do
       it { expect(response.headers['jwt']).to eq(JsonWebToken.encode(user_id: json['id'])) }
     end
   end
+
+  describe '#update' do
+    context 'when no user is logged in' do
+      before(:each) { patch '/api/users/1' }
+      
+      it { expect(response).to have_http_status(:unauthorized)}
+    end
+
+    context 'when id does not belong to current user' do
+      before(:each) { authorized :patch, '/api/users/0', user: user }
+      
+      it { expect(response).to have_http_status(:forbidden) }
+    end
+
+    context "when current_password is not the current user's password" do
+      before(:each) {
+        params = { user: { current_password: "bad_pass" } }
+        authorized :patch, "/api/users/#{user.id}", params: params, user: user
+      }
+      it { expect(response).to have_http_status(:unauthorized) }
+    end
+
+    context 'when params are invalid' do
+      before(:each) {
+        params = { user: { current_password: user.password, email: '' } }
+        authorized :patch, "/api/users/#{user.id}", params: params, user: user
+      }
+      it { expect(response).to have_http_status(:unprocessable_entity) }
+    end
+
+    context 'when params are valid' do
+      before(:each) { 
+        @email = 'newemail@email.com'
+        params = { user: { current_password: user.password, email: @email } }
+        authorized :patch, "/api/users/#{user.id}", params: params, user: user
+      }
+      it { expect(response).to have_http_status(:ok) }
+      it { expect(json.keys).to match_array(['id', 'email']) }
+      it { expect(json['id']).to eq(user.id) }
+      it { expect(json['email']).to eq(@email) }
+    end
+  end
 end

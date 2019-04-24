@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe User do
+RSpec.describe Post do
   subject { Post.create(title: 'My Title', body: "Lorem ipsum ...") }
 
   describe 'validations' do
@@ -11,5 +11,6 @@ RSpec.describe User do
 
   describe 'relationships' do
     it { should belong_to(:user) }
+    it { should have_many(:comments) }
   end
 end
